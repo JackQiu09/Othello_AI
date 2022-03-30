@@ -30,9 +30,13 @@ def compute_heuristic(board, color): #not implemented, optional
 
 ############ MINIMAX ###############################
 def minimax_min_node(board, color, limit, caching = 0):
+    if color == 1:
+        min_p = 2
+    elif color == 2:
+        min_p = 1
     best_move = None
-    if get_possible_moves(board, color):
-        return best_move, compute_utility(board, color)
+    if not get_possible_moves(board, color):
+        return best_move, compute_utility(board, max_p)
 
 
 def minimax_max_node(board, color, limit, caching = 0): #returns highest possible utility
