@@ -1,7 +1,7 @@
 """
 An AI player for Othello.
 """
-
+import math
 import random
 import sys
 import time
@@ -34,14 +34,40 @@ def minimax_min_node(board, color, limit, caching = 0):
         min_p = 2
     elif color == 2:
         min_p = 1
+
     best_move = None
-    if not get_possible_moves(board, color):
-        return best_move, compute_utility(board, max_p)
+    moves = get_possible_moves(board, color)
+    value = math.inf
+
+    if not moves:
+        return best_move, compute_utility(board, color)
+    for m in moves:
+        b = play_move(board, color, m[0], m[1])
+        nxt_move, nxt_val = minimax_max_node(b, min_p, limit, caching)
+        if value > nxt_val:
+            value, best_move = nxt_val, m
+    return best_move, value
 
 
 def minimax_max_node(board, color, limit, caching = 0): #returns highest possible utility
-    #IMPLEMENT (and replace the line below)
-    return ((0,0),0)
+    if color == 1:
+        max_p = 2
+    elif color == 2:
+        max_p = 1
+
+    best_move = None
+    moves = get_possible_moves(board, color)
+    value = -math.inf
+
+    if not moves:
+        return best_move, compute_utility(board, color)
+    for m in moves:
+        b = play_move(board, color, m[0], m[1])
+        nxt_move, nxt_val = minimax_min_node(b, max_p, limit, caching)
+        if value < nxt_val:
+            value, best_move = nxt_val, m
+    return best_move, value
+
 
 def select_move_minimax(board, color, limit, caching = 0):
     """
@@ -56,8 +82,21 @@ def select_move_minimax(board, color, limit, caching = 0):
     If caching is ON (i.e. 1), use state caching to reduce the number of state evaluations.
     If caching is OFF (i.e. 0), do NOT use state caching to reduce the number of state evaluations.
     """
-    #IMPLEMENT (and replace the line below)
-    return (0,0) #change this!
+    min_move, min_val = minimax_min_node(board, color, limit, caching)
+    max_move, max_val = minimax_max_node(board, color, limit, caching)
+    print("min move: {} min val: {}, max move: {} max val: {}".format(min_move, min_val, max_move, max_val))
+
+    if abs(min_val) > abs(max_val):
+        if min_val > 0:
+            return max_move
+        return min_move
+    elif abs(min_val) < abs(max_val):
+        if max_val < 0:
+            return min_move
+        return max_move
+    else:
+        return max_move
+
 
 ############ ALPHA-BETA PRUNING #####################
 def alphabeta_min_node(board, color, alpha, beta, limit, caching = 0, ordering = 0):
