@@ -31,19 +31,19 @@ def compute_heuristic(board, color): #not implemented, optional
 ############ MINIMAX ###############################
 def minimax_min_node(board, color, limit, caching = 0):
     if color == 1:
-        min_p = 2
+        max_p = 2
     elif color == 2:
-        min_p = 1
+        max_p = 1
 
     best_move = None
     moves = get_possible_moves(board, color)
     value = math.inf
 
     if not moves:
-        return best_move, compute_utility(board, color)
+        return best_move, compute_utility(board, max_p)
     for m in moves:
         b = play_move(board, color, m[0], m[1])
-        nxt_move, nxt_val = minimax_max_node(b, min_p, limit, caching)
+        nxt_move, nxt_val = minimax_max_node(b, max_p, limit, caching)
         if value > nxt_val:
             value, best_move = nxt_val, m
     return best_move, value
@@ -51,9 +51,9 @@ def minimax_min_node(board, color, limit, caching = 0):
 
 def minimax_max_node(board, color, limit, caching = 0): #returns highest possible utility
     if color == 1:
-        max_p = 2
+        min_p = 2
     elif color == 2:
-        max_p = 1
+        min_p = 1
 
     best_move = None
     moves = get_possible_moves(board, color)
@@ -63,7 +63,7 @@ def minimax_max_node(board, color, limit, caching = 0): #returns highest possibl
         return best_move, compute_utility(board, color)
     for m in moves:
         b = play_move(board, color, m[0], m[1])
-        nxt_move, nxt_val = minimax_min_node(b, max_p, limit, caching)
+        nxt_move, nxt_val = minimax_min_node(b, min_p, limit, caching)
         if value < nxt_val:
             value, best_move = nxt_val, m
     return best_move, value
