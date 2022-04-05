@@ -21,12 +21,12 @@ bigboards = [((0, 0, 0, 0, 0, 0), (0, 0, 2, 2, 0, 0), (0, 1, 1, 2, 2, 0), (2, 2,
 test_compute_utility = False
 test_alphabeta_min_node_1 = False
 test_alphabeta_max_node_1 = False
-test_minimax_min_node_1 = False
-test_minimax_max_node_1 = False
+test_minimax_min_node_1 = True
+test_minimax_max_node_1 = True
 test_alphabeta_min_node_2 = False
 test_alphabeta_max_node_2 = False
-test_minimax_min_node_2 = False
-test_minimax_max_node_2 = False
+test_minimax_min_node_2 = True
+test_minimax_max_node_2 = True
 test_caching_big = False
 test_ordering = False
 test_select_move_minimax = True
@@ -47,7 +47,8 @@ if test_compute_utility:
         correct+=1
 
     print("You computed correct utilities for {} of {} small boards".format(correct, len(correctvalues)))
-
+#v1 = select_move_minimax(smallboards[5], 1, 6)
+#v2 = select_move_minimax(smallboards[5], 2, 6)
 if test_select_move_minimax:
     correctmoves_1 = [(0,0),(2,3),(0,0),(3,0),(3,1), (0,3)]
     correctmoves_2 = [(3,3),(0,0),(3,3),(0,2),(3,1),(0,0)]

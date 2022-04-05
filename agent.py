@@ -31,41 +31,48 @@ def compute_heuristic(board, color): #not implemented, optional
 ############ MINIMAX ###############################
 def minimax_min_node(board, color, limit, caching = 0):
     if color == 1:
-        max_p = 2
-    elif color == 2:
-        max_p = 1
+        min_p = 2
+    else:
+        min_p = 1
 
     best_move = None
-    moves = get_possible_moves(board, color)
+    moves = get_possible_moves(board, min_p)
     value = math.inf
 
     if not moves:
-        return best_move, compute_utility(board, max_p)
+        return best_move, compute_utility(board, color)
+    if limit == 0:
+        return best_move, compute_utility(board, color)
     for m in moves:
-        b = play_move(board, color, m[0], m[1])
-        nxt_move, nxt_val = minimax_max_node(b, max_p, limit, caching)
+        b = play_move(board, min_p, m[0], m[1])
+        if limit > 0:
+            nxt_move, nxt_val = minimax_max_node(b, color, limit - 1, caching)
+        else:
+            nxt_move, nxt_val = minimax_max_node(b, color, limit, caching)
         if value > nxt_val:
-            value, best_move = nxt_val, m
+            best_move, value = m, nxt_val
+    #print(best_move, value)
     return best_move, value
 
 
 def minimax_max_node(board, color, limit, caching = 0): #returns highest possible utility
-    if color == 1:
-        min_p = 2
-    elif color == 2:
-        min_p = 1
-
     best_move = None
     moves = get_possible_moves(board, color)
     value = -math.inf
 
     if not moves:
         return best_move, compute_utility(board, color)
+    if limit == 0:
+        return best_move, compute_utility(board, color)
     for m in moves:
         b = play_move(board, color, m[0], m[1])
-        nxt_move, nxt_val = minimax_min_node(b, min_p, limit, caching)
+        if limit > 0:
+            nxt_move, nxt_val = minimax_min_node(b, color, limit - 1, caching)
+        else:
+            nxt_move, nxt_val = minimax_min_node(b, color, limit, caching)
         if value < nxt_val:
-            value, best_move = nxt_val, m
+            best_move, value = m, nxt_val
+    #print(best_move, value)
     return best_move, value
 
 
@@ -82,30 +89,78 @@ def select_move_minimax(board, color, limit, caching = 0):
     If caching is ON (i.e. 1), use state caching to reduce the number of state evaluations.
     If caching is OFF (i.e. 0), do NOT use state caching to reduce the number of state evaluations.
     """
-    min_move, min_val = minimax_min_node(board, color, limit, caching)
-    max_move, max_val = minimax_max_node(board, color, limit, caching)
-    print("min move: {} min val: {}, max move: {} max val: {}".format(min_move, min_val, max_move, max_val))
+    best_move = None
+    moves = get_possible_moves(board, color)
+    value = -math.inf
 
-    if abs(min_val) > abs(max_val):
-        if min_val > 0:
-            return max_move
-        return min_move
-    elif abs(min_val) < abs(max_val):
-        if max_val < 0:
-            return min_move
-        return max_move
-    else:
-        return max_move
+    for m in moves:
+        b = play_move(board, color, m[0], m[1])
+        if limit > 0:
+            nxt_move, nxt_val = minimax_min_node(b, color, limit - 1, caching)
+        else:
+            nxt_move, nxt_val = minimax_min_node(b, color, limit, caching)
+        if value < nxt_val:
+            value = nxt_val
+            best_move = m
+    return best_move
 
 
 ############ ALPHA-BETA PRUNING #####################
 def alphabeta_min_node(board, color, alpha, beta, limit, caching = 0, ordering = 0):
-    #IMPLEMENT (and replace the line below)
-    return ((0,0),0) #change this!
+    if color == 1:
+        max_p = 2
+    else:
+        max_p = 1
+
+    best_move = None
+    moves = get_possible_moves(board, color)
+    value = math.inf
+
+    if not moves or limit == 0:
+        return best_move, compute_utility(board, max_p)
+    for m in moves:
+        b = play_move(board, color, m[0], m[1])
+        if limit > 0:
+            nxt_move, nxt_val = minimax_max_node(b, max_p, limit - 1, caching)
+        else:
+            nxt_move, nxt_val = minimax_max_node(b, max_p, limit, caching)
+        if value > nxt_val:
+            best_move, value = m, nxt_val
+        if value <= alpha:
+            return best_move, value
+        beta = min(beta, value)
+    print(best_move, value)
+    return best_move, value
+
 
 def alphabeta_max_node(board, color, alpha, beta, limit, caching = 0, ordering = 0):
-    #IMPLEMENT (and replace the line below)
-    return ((0,0),0) #change this!
+    if color == 1:
+        min_p = 2
+    else:
+        min_p = 1
+
+    best_move = None
+    moves = get_possible_moves(board, color)
+    value = -math.inf
+
+    if not moves:
+        return best_move, compute_utility(board, color)
+    if limit == 0:
+        return best_move, compute_utility(board, color)
+    for m in moves:
+        b = play_move(board, color, m[0], m[1])
+        if limit > 0:
+            nxt_move, nxt_val = minimax_min_node(b, min_p, limit - 1, caching)
+        else:
+            nxt_move, nxt_val = minimax_min_node(b, min_p, limit, caching)
+        if value < nxt_val:
+            best_move, value = m, nxt_val
+        if value >= beta:
+            return best_move, value
+        alpha = max(alpha, value)
+    print(best_move, value)
+    return best_move, value
+
 
 def select_move_alphabeta(board, color, limit, caching = 0, ordering = 0):
     """
@@ -122,8 +177,29 @@ def select_move_alphabeta(board, color, limit, caching = 0, ordering = 0):
     If ordering is ON (i.e. 1), use node ordering to expedite pruning and reduce the number of state evaluations.
     If ordering is OFF (i.e. 0), do NOT use node ordering to expedite pruning and reduce the number of state evaluations.
     """
-    #IMPLEMENT (and replace the line below)
-    return (0,0) #change this!
+    alpha = -math.inf
+    beta = math.inf
+    if color == 1:
+        min_p = 2
+    else:
+        min_p = 1
+
+    best_move = None
+    moves = get_possible_moves(board, color)
+    value = -math.inf
+
+    if not moves:
+        return best_move
+    for m in moves:
+        b = play_move(board, color, m[0], m[1])
+        if limit > 0:
+            nxt_move, nxt_val = alphabeta_min_node(b, min_p, alpha, beta, limit - 1, caching)
+        else:
+            nxt_move, nxt_val = alphabeta_min_node(b, min_p, alpha, beta, limit, caching)
+        if value < nxt_val:
+            value = nxt_val
+            best_move = m
+    return best_move
 
 ####################################################
 def run_ai():
