@@ -1,14 +1,17 @@
 """
 An AI player for Othello.
 """
+import heapq
 import math
 import random
 import sys
 import time
+from heapq import heappush, heappop
 
 # You can use the functions in othello_shared to write your AI
 from othello_shared import find_lines, get_possible_moves, get_score, play_move
 
+caching_states = {}
 
 def eprint(*args, **kwargs): #you can use this for debugging, as it will print to sterr and not stdout
     print(*args, file=sys.stderr, **kwargs)
@@ -39,19 +42,38 @@ def minimax_min_node(board, color, limit, caching = 0):
     moves = get_possible_moves(board, min_p)
     value = math.inf
 
-    if not moves:
-        return best_move, compute_utility(board, color)
-    if limit == 0:
+    if not moves or limit == 0:
         return best_move, compute_utility(board, color)
     for m in moves:
         b = play_move(board, min_p, m[0], m[1])
-        if limit > 0:
-            nxt_move, nxt_val = minimax_max_node(b, color, limit - 1, caching)
+        if caching == 1:
+            if b in caching_states:
+                nxt_val = caching_states[b]
+                if value > nxt_val:
+                    best_move, value = m, nxt_val
+            else:
+                if limit > 0:
+                    nxt_move, nxt_val = minimax_max_node(b, color, limit - 1,
+                                                           caching)
+                    if value > nxt_val:
+                        best_move, value = m, nxt_val
+                    caching_states[b] = value
+                else:
+                    nxt_move, nxt_val = minimax_max_node(b, color, limit,
+                                                           caching)
+                    if value > nxt_val:
+                        best_move, value = m, nxt_val
+                    caching_states[b] = value
+                    best_move = m
         else:
-            nxt_move, nxt_val = minimax_max_node(b, color, limit, caching)
-        if value > nxt_val:
-            best_move, value = m, nxt_val
-    #print(best_move, value)
+            if limit > 0:
+                nxt_move, nxt_val = minimax_max_node(b, color, limit - 1,
+                                                       caching)
+            else:
+                nxt_move, nxt_val = minimax_max_node(b, color, limit, caching)
+            if value > nxt_val:
+                best_move, value = m, nxt_val
+    # print(best_move, value)
     return best_move, value
 
 
@@ -60,19 +82,37 @@ def minimax_max_node(board, color, limit, caching = 0): #returns highest possibl
     moves = get_possible_moves(board, color)
     value = -math.inf
 
-    if not moves:
-        return best_move, compute_utility(board, color)
-    if limit == 0:
+    if not moves or limit == 0:
         return best_move, compute_utility(board, color)
     for m in moves:
         b = play_move(board, color, m[0], m[1])
-        if limit > 0:
-            nxt_move, nxt_val = minimax_min_node(b, color, limit - 1, caching)
+        if caching == 1:
+            if b in caching_states:
+                nxt_val = caching_states[b]
+                if value < nxt_val:
+                    best_move, value = m, nxt_val
+            else:
+                if limit > 0:
+                    nxt_move, nxt_val = minimax_min_node(b, color, limit - 1,
+                                                           caching)
+                    if value < nxt_val:
+                        best_move, value = m, nxt_val
+                    caching_states[b] = value
+                else:
+                    nxt_move, nxt_val = minimax_min_node(b, color, limit,
+                                                           caching)
+                    if value < nxt_val:
+                        best_move, value = m, nxt_val
+                    caching_states[b] = value
         else:
-            nxt_move, nxt_val = minimax_min_node(b, color, limit, caching)
-        if value < nxt_val:
-            best_move, value = m, nxt_val
-    #print(best_move, value)
+            if limit > 0:
+                nxt_move, nxt_val = minimax_min_node(b, color, limit - 1,
+                                                       caching)
+            else:
+                nxt_move, nxt_val = minimax_min_node(b, color, limit, caching)
+            if value < nxt_val:
+                best_move, value = m, nxt_val
+    # print(best_move, value)
     return best_move, value
 
 
@@ -93,15 +133,29 @@ def select_move_minimax(board, color, limit, caching = 0):
     moves = get_possible_moves(board, color)
     value = -math.inf
 
+    if not moves:
+        return best_move
+
     for m in moves:
         b = play_move(board, color, m[0], m[1])
-        if limit > 0:
-            nxt_move, nxt_val = minimax_min_node(b, color, limit - 1, caching)
+        if caching == 1:
+            if b in caching_states:
+                nxt_val = caching_states[b]
+            else:
+                if limit > 0:
+                    nxt_move, nxt_val = minimax_min_node(b, color, limit - 1, caching)
+                    caching_states[b] = nxt_val
+                else:
+                    nxt_move, nxt_val = minimax_min_node(b, color, limit, caching)
+                    caching_states[b] = nxt_val
         else:
-            nxt_move, nxt_val = minimax_min_node(b, color, limit, caching)
+            if limit > 0:
+                nxt_move, nxt_val = minimax_min_node(b, color, limit - 1, caching)
+            else:
+                nxt_move, nxt_val = minimax_min_node(b, color, limit, caching)
         if value < nxt_val:
-            value = nxt_val
-            best_move = m
+            best_move, value = m, nxt_val
+    # print(best_move, value)
     return best_move
 
 
@@ -118,17 +172,59 @@ def alphabeta_min_node(board, color, alpha, beta, limit, caching = 0, ordering =
 
     if not moves or limit == 0:
         return best_move, compute_utility(board, color)
+    states_list = []
+    states = []
+    move = []
     for m in moves:
         b = play_move(board, min_p, m[0], m[1])
-        if limit > 0:
-            nxt_move, nxt_val = minimax_max_node(b, color, limit - 1, caching)
+        if ordering == 1:
+            utl = compute_utility(b, color)
+            heappush(states_list, (utl, b, m))
         else:
-            nxt_move, nxt_val = minimax_max_node(b, color, limit, caching)
-        if value > nxt_val:
-            best_move, value = m, nxt_val
+            states.append(b)
+            move.append(m)
+    if ordering == 1:
+        while states_list:
+            s = heappop(states_list)
+            states.append(s[1])
+            move.append(s[2])
+    for i in range(len(states)):
+        if caching == 1:
+            if states[i] in caching_states:
+                nxt_val = caching_states[states[i]]
+                if value > nxt_val:
+                    best_move, value = move[i], nxt_val
+            else:
+                if limit > 0:
+                    nxt_move, nxt_val = alphabeta_max_node(states[i], color,
+                                                           alpha, beta,
+                                                           limit - 1,
+                                                           caching)
+                    if value > nxt_val:
+                        best_move, value = move[i], nxt_val
+                    caching_states[states[i]] = value
+                else:
+                    nxt_move, nxt_val = alphabeta_max_node(states[i], color,
+                                                           alpha, beta,
+                                                           limit, caching)
+                    if value > nxt_val:
+                        best_move, value = move[i], nxt_val
+                    caching_states[states[i]] = value
+        else:
+            if limit > 0:
+                nxt_move, nxt_val = alphabeta_max_node(states[i], color,
+                                                       alpha, beta,
+                                                       limit - 1, caching)
+            else:
+                nxt_move, nxt_val = alphabeta_max_node(states[i], color,
+                                                       alpha, beta, limit,
+                                                       caching)
+            if value > nxt_val:
+                best_move, value = move[i], nxt_val
         if value <= alpha:
             return best_move, value
         beta = min(beta, value)
+    #print(best_move, value)
     return best_move, value
 
 
@@ -137,21 +233,62 @@ def alphabeta_max_node(board, color, alpha, beta, limit, caching = 0, ordering =
     moves = get_possible_moves(board, color)
     value = -math.inf
 
-    if not moves:
+    if not moves or limit == 0:
         return best_move, compute_utility(board, color)
-    if limit == 0:
-        return best_move, compute_utility(board, color)
+    states_list = []
+    states = []
+    move = []
     for m in moves:
         b = play_move(board, color, m[0], m[1])
-        if limit > 0:
-            nxt_move, nxt_val = minimax_min_node(b, color, limit - 1, caching)
+        if ordering == 1:
+            utl = compute_utility(b, color)
+            heappush(states_list, (-utl, b, m))
         else:
-            nxt_move, nxt_val = minimax_min_node(b, color, limit, caching)
-        if value < nxt_val:
-            best_move, value = m, nxt_val
+            states.append(b)
+            move.append(m)
+    if ordering == 1:
+        while states_list:
+            s = heappop(states_list)
+            states.append(s[1])
+            move.append(s[2])
+    for i in range(len(states)):
+        if caching == 1:
+            if states[i] in caching_states:
+                nxt_val = caching_states[states[i]]
+                if value < nxt_val:
+                    best_move, value = move[i], nxt_val
+            else:
+                if limit > 0:
+                    nxt_move, nxt_val = alphabeta_min_node(states[i], color,
+                                                           alpha, beta,
+                                                           limit - 1,
+                                                           caching)
+                    if value < nxt_val:
+                        best_move, value = move[i], nxt_val
+                    caching_states[states[i]] = value
+                else:
+                    nxt_move, nxt_val = alphabeta_min_node(states[i], color,
+                                                           alpha, beta,
+                                                           limit, caching)
+                    if value < nxt_val:
+                        best_move, value = move[i], nxt_val
+                    caching_states[states[i]] = value
+        else:
+            if limit > 0:
+                nxt_move, nxt_val = alphabeta_min_node(states[i], color,
+                                                       alpha, beta,
+                                                       limit - 1, caching)
+            else:
+                nxt_move, nxt_val = alphabeta_min_node(states[i], color,
+                                                       alpha, beta, limit,
+                                                       caching)
+
+            if value < nxt_val:
+                best_move, value = move[i], nxt_val
         if value >= beta:
             return best_move, value
         alpha = max(alpha, value)
+    #print(best_move, value)
     return best_move, value
 
 
@@ -170,23 +307,57 @@ def select_move_alphabeta(board, color, limit, caching = 0, ordering = 0):
     If ordering is ON (i.e. 1), use node ordering to expedite pruning and reduce the number of state evaluations.
     If ordering is OFF (i.e. 0), do NOT use node ordering to expedite pruning and reduce the number of state evaluations.
     """
-    alpha = -math.inf
+    value = -math.inf
     beta = math.inf
     best_move = None
     moves = get_possible_moves(board, color)
-    value = -math.inf
 
     if not moves:
         return best_move
+    states_list = []
+    states = []
+    move = []
     for m in moves:
         b = play_move(board, color, m[0], m[1])
-        if limit > 0:
-            nxt_move, nxt_val = alphabeta_min_node(b, color, alpha, beta, limit - 1, caching)
+        if ordering == 1:
+            utl = compute_utility(b, color)
+            heappush(states_list, (-utl, b, m))
         else:
-            nxt_move, nxt_val = alphabeta_min_node(b, color, alpha, beta, limit, caching)
+            states.append(b)
+            move.append(m)
+    if ordering == 1:
+        while states_list:
+            s = heappop(states_list)
+            states.append(s[1])
+            move.append(s[2])
+    for i in range(len(states)):
+        if caching == 1:
+            if states[i] in caching_states:
+                nxt_val = caching_states[states[i]]
+            else:
+                if limit > 0:
+                    nxt_move, nxt_val = alphabeta_min_node(states[i], color,
+                                                           value, beta,
+                                                           limit - 1,
+                                                           caching)
+                    caching_states[states[i]] = nxt_val
+                else:
+                    nxt_move, nxt_val = alphabeta_min_node(states[i], color,
+                                                           value, beta,
+                                                           limit, caching)
+                    caching_states[states[i]] = nxt_val
+        else:
+            if limit > 0:
+                nxt_move, nxt_val = alphabeta_min_node(states[i], color,
+                                                       value, beta,
+                                                       limit - 1, caching)
+            else:
+                nxt_move, nxt_val = alphabeta_min_node(states[i], color,
+                                                       value, beta, limit,
+                                                       caching)
         if value < nxt_val:
-            value = nxt_val
-            best_move = m
+            best_move, value = move[i], nxt_val
+    #print(best_move, value)
     return best_move
 
 ####################################################
