@@ -26,7 +26,34 @@ def compute_utility(board, color):
 
 # Better heuristic value of board
 def compute_heuristic(board, color): #not implemented, optional
-    return 0
+    if color == 1:
+        opp = 2
+    else:
+        opp = 1
+
+    p1, p2 = get_score(board)
+    diff = p1 - p2
+    diff2 = p2 - p1
+
+    max_corner = 0
+    min_corner = 0
+    n = len(board)
+    corner_list = [(0, 0), (0, n - 1), (n - 1, 0), (n - 1, n - 1)]
+    for c in corner_list:
+        if board[c[0]][c[1]] == color:
+            max_corner += 1
+        if board[c[0]][c[1]] == opp:
+            min_corner += 1
+    if (max_corner + min_corner) != 0:
+        heur = 100 * (max_corner - min_corner) / (max_corner + min_corner)
+    else:
+        heur = 0
+    if heur != 0:
+        return heur
+    else:
+        if color == 1:
+            return diff
+        return diff2
 
 
 ############ MINIMAX ###############################
