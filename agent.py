@@ -1,7 +1,6 @@
 """
 An AI player for Othello.
 """
-import heapq
 import math
 import random
 import sys
@@ -27,8 +26,7 @@ def compute_utility(board, color):
 
 # Better heuristic value of board
 def compute_heuristic(board, color): #not implemented, optional
-    #IMPLEMENT
-    return 0 #change this!
+    return 0
 
 
 ############ MINIMAX ###############################
@@ -73,7 +71,6 @@ def minimax_min_node(board, color, limit, caching = 0):
                 nxt_move, nxt_val = minimax_max_node(b, color, limit, caching)
             if value > nxt_val:
                 best_move, value = m, nxt_val
-    # print(best_move, value)
     return best_move, value
 
 
@@ -112,7 +109,6 @@ def minimax_max_node(board, color, limit, caching = 0): #returns highest possibl
                 nxt_move, nxt_val = minimax_min_node(b, color, limit, caching)
             if value < nxt_val:
                 best_move, value = m, nxt_val
-    # print(best_move, value)
     return best_move, value
 
 
@@ -155,7 +151,6 @@ def select_move_minimax(board, color, limit, caching = 0):
                 nxt_move, nxt_val = minimax_min_node(b, color, limit, caching)
         if value < nxt_val:
             best_move, value = m, nxt_val
-    # print(best_move, value)
     return best_move
 
 
@@ -224,7 +219,6 @@ def alphabeta_min_node(board, color, alpha, beta, limit, caching = 0, ordering =
         if value <= alpha:
             return best_move, value
         beta = min(beta, value)
-    #print(best_move, value)
     return best_move, value
 
 
@@ -288,7 +282,6 @@ def alphabeta_max_node(board, color, alpha, beta, limit, caching = 0, ordering =
         if value >= beta:
             return best_move, value
         alpha = max(alpha, value)
-    #print(best_move, value)
     return best_move, value
 
 
@@ -357,7 +350,6 @@ def select_move_alphabeta(board, color, limit, caching = 0, ordering = 0):
                                                        caching)
         if value < nxt_val:
             best_move, value = move[i], nxt_val
-    #print(best_move, value)
     return best_move
 
 ####################################################
@@ -368,7 +360,7 @@ def run_ai():
     Then it repeatedly receives the current score and current board state
     until the game is over.
     """
-    print("Othello AI") # First line is the name of this AI
+    print("Terminator") # First line is the name of this AI
     arguments = input().split(",")
 
     color = int(arguments[0]) #Player color: 1 for dark (goes first), 2 for light.
@@ -401,7 +393,7 @@ def run_ai():
         light_score = int(light_score_s)
 
         if status == "FINAL": # Game is over.
-            print
+            print("FINAL {} {}".format(dark_score, light_score))
         else:
             board = eval(input()) # Read in the input and turn it into a Python
                                   # object. The format is a list of rows. The
