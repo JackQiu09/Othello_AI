@@ -22,12 +22,12 @@ $python3 othello_gui.py -d <dimension> [-a <agentA> -b <agentB> -l <depth-limit>
 
 Example 1:
 '''
-$python3 othello_gui.py -d 8 -a agent.py -l 5 -m -c
+  $python3 othello_gui.py -d 8 -a agent.py -l 5 -m -c
 '''
 This allows you to play with the Minimax version of the AI on a 8x8 board.
 
 Example 2:
-  '''
+'''
   $python3 othello_gui.py -d 8 -a agent.py -l 5 -c -o
-  '''
+'''
 This allows you to play with the Alpha-beta version of the AI on a 8x8 board.
