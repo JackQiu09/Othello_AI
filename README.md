@@ -4,7 +4,7 @@ Developed two versions of Othello AI using a Minimax and an Alpha-beta algorithm
 
 To play with the AI. Please use the following input format in cmd or Terminal:
 ```
-$python3 othello_gui.py -d <dimension> [-a <agentA> -b <agentB> -l <depth-limit> -c -o]
+  $python3 othello_gui.py -d <dimension> [-a <agentA> -b <agentB> -l <depth-limit> -c -o]
 ```
 -d flag: specify the dimension of the board.
   
