@@ -3,9 +3,9 @@
 Developed two versions of Othello AI using a Minimax and an Alpha-beta algorithm. The code written by me is in agent.py and the rest of the file is provided by the University of Toronto..
 
 To play with the AI. Please use the following input format in cmd or Terminal:
-
+```
 $python3 othello_gui.py -d <dimension> [-a <agentA> -b <agentB> -l <depth-limit> -c -o]
-
+```
 -d flag: specify the dimension of the board.
   
 -a flag: specify which AI to play with. You can choose between agent.py or randy_ai.py (an AI that plays randomly).
